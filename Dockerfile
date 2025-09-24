@@ -1,4 +1,4 @@
-FROM nginx:latest
+FROM nginx:alpine
 
 # Copy your HTML page
 COPY index.html /usr/share/nginx/html/index.html
