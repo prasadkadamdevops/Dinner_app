@@ -34,8 +34,8 @@ jobs:
       # Sanity check (prevents silent SSH failure)
       - name: Verify SSH Secret Exists
         run: |
-          if [ -z "${{ secrets.SERVER_SSH_KEY }}" ]; then
-            echo "❌ SERVER_SSH_KEY secret is missing"
+          if [ -z "${{ secrets.DINNER_APP_PEM }}" ]; then
+            echo "❌ DINNER_APP_PEM secret is missing"
             exit 1
           else
             echo "✅ SSH key found"
