@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:   # allows manual trigger
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -23,20 +23,40 @@ jobs:
 
       # Build Docker Image
       - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dinner-app:latest .
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dinner-app:latest .
 
       # Push Docker Image
       - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/dinner-app:latest
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dinner-app:latest
+
+      # Sanity check (prevents silent SSH failure)
+      - name: Verify SSH Secret Exists
+        run: |
+          if [ -z "${{ secrets.SERVER_SSH_KEY }}" ]; then
+            echo "❌ SERVER_SSH_KEY secret is missing"
+            exit 1
+          else
+            echo "✅ SSH key found"
+          fi
 
       # Deploy to EC2 via SSH
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}   # ubuntu or ec2-user
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          username: ${{ secrets.SERVER_USER }}   # ubuntu / ec2-user
+          key: ${{ secrets.SERVER_SSH_KEY }}     # .pem private key
+          port: 22
+          timeout: 60s
+          command_timeout: 15m
+          script_stop: true
           script: |
+            set -e
+            echo "Connected as $(whoami)"
+            docker ps
+
             docker stop dinner || true
             docker rm dinner || true
 
@@ -47,4 +67,7 @@ jobs:
               --restart unless-stopped \
               -p 8888:8888 \
               ${{ secrets.DOCKERHUB_USERNAME }}/dinner-app:latest
+
+            echo "✅ Deployment completed"
+
 
