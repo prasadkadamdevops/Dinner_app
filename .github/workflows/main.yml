@@ -47,7 +47,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}   # ubuntu / ec2-user
-          key: ${{ secrets.SERVER_SSH_KEY }}     # .pem private key
+          key: ${{ secrets.DINNER_APP_PEM }}     # .pem private key
           port: 22
           timeout: 60s
           command_timeout: 15m
@@ -69,5 +69,3 @@ jobs:
               ${{ secrets.DOCKERHUB_USERNAME }}/dinner-app:latest
 
             echo "✅ Deployment completed"
-
-
